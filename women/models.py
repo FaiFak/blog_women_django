@@ -20,7 +20,7 @@ class Women(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
     time_updated = models.DateTimeField(auto_now=True)
     is_published = models.BooleanField(choices=Status.choices, default=Status.DRAFT)
-    cat = models.ForeignKey(to="Category", on_delete=models.CASCADE)
+    cat = models.ForeignKey(to="Category", on_delete=models.CASCADE, related_name='posts')
     # Удалить можно только те категории, которые не связаны с постами
 
     objects = models.Manager()
