@@ -21,7 +21,7 @@ class Women(models.Model):
     time_updated = models.DateTimeField(auto_now=True)
     is_published = models.BooleanField(choices=Status.choices, default=Status.DRAFT)
     cat = models.ForeignKey(to="Category", on_delete=models.CASCADE, related_name='posts')
-    # Удалить можно только те категории, которые не связаны с постами
+    tags = models.ManyToManyField('TagPost', blank=True, related_name='tags')
 
     objects = models.Manager()
     published = PublishedManager()
@@ -48,3 +48,11 @@ class Category(models.Model):
 
     def get_absolute_url(self):
         return reverse('category', kwargs={'cat_slug': self.slug})
+
+
+class TagPost(models.Model):
+    tag = models.CharField(max_length=100, db_index=True)
+    slug = models.SlugField(max_length=255, db_index=True, unique=True)
+
+    def __str__(self):
+        return self.tag
