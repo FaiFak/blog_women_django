@@ -6,7 +6,7 @@ from django.template.defaultfilters import slugify
 # Create your views here.
 from django.urls import reverse
 
-from women.models import Women
+from women.models import Women, Category
 
 menu = [
     {'title': 'О сайте', 'url_name': 'about'},
@@ -72,15 +72,16 @@ def login(request):
     return HttpResponse("Страница авторизации")
 
 
-def show_category(request, cat_id):
+def show_category(request, cat_slug):
+    category = get_object_or_404(Category, slug=cat_slug)
+    # Используем 2 независимых запроса, чтобы не отрабатывалось дважды
+    posts = Women.published.filter(cat_id=category.pk)
+
     data = {
-        'title': "Главная страница",
+        'title': f"Рубрика: {category.name}",
         'menu': menu,
-        'posts': data_db,
-        'cat_selected': cat_id,
+        'posts': posts,
+        'cat_selected': category.pk,
     }
 
     return render(request, template_name='women/index.html', context=data)
-
-# def page_not_found(request, exception):
-#     return HttpResponseNotFound('<h1>Страница не найдена</h1>')
