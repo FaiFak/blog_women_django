@@ -20,13 +20,16 @@ from django.urls import path, include
 from women import views
 from women.handler_error import *
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('women.urls')),  # Главная страница
+    path("__debug__/", include("debug_toolbar.urls"))
 ]
 
 handler400 = bad_request
 handler403 = denied_access
 handler404 = page_not_found
 handler500 = server_error
+
+admin.site.site_header = "Панель администрирования"
+admin.site.index_title = 'Популярные женщины'

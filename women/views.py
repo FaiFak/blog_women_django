@@ -6,6 +6,7 @@ from django.template.defaultfilters import slugify
 # Create your views here.
 from django.urls import reverse
 
+from women.forms import AddPostForm
 from women.models import Women, Category, TagPost
 
 menu = [
@@ -15,23 +16,9 @@ menu = [
     {'title': 'Войти', 'url_name': 'login'},
 ]
 
-data_db = [
-    {'id': 1, 'title': 'Анджелина Джоли',
-     'content': 'Анджелина Джоли (англ. Angelina Jolie[7], при рождении Войт (англ. Voight), ранее Джоли Питт (англ. Jolie Pitt); род. 4 июня 1975, Лос-Анджелес, Калифорния, США) — американская актриса кино, телевидения и озвучивания, кинорежиссёр, сценаристка, продюсер, фотомодель, посол доброй воли ООН. Обладательница премии «Оскар», трёх премий «Золотой глобус» (первая актриса в истории, три года подряд выигравшая премию) и двух «Премий Гильдии киноактёров США».''',
-     'is_published': True},
-    {'id': 2, 'title': 'Марго Робби', 'content': 'Биография Марго Робби', 'is_published': False},
-    {'id': 3, 'title': 'Джулия Робертс', 'content': 'Биография Джулия Робертс', 'is_published': True},
-]
-
-cats_db = [
-    {'id': 1, 'name': 'Актрисы'},
-    {'id': 2, 'name': 'Певицы'},
-    {'id': 3, 'name': 'Спортсменки'},
-]
-
 
 def index(request):
-    posts = Women.published.all()
+    posts = Women.published.all().select_related('cat')
 
     data = {
         'title': "Главная страница",
@@ -62,7 +49,21 @@ def show_post(request, post_slug):
 
 
 def addpage(request):
-    return HttpResponse("Добавление статьи")
+    if request.method == "POST":
+        form = AddPostForm(request.POST)
+        if form.is_valid():
+            # print(form.cleaned_data)
+            title = form.cleaned_data['title']
+            try:
+                Women.objects.create(**form.cleaned_data)
+                return redirect('home')
+            except:
+                form.add_error(None, 'Ошибка добавления поста')
+    else:
+        form = AddPostForm()
+
+    data = {'menu': menu, 'title': 'Добавление статьи', 'form': form}
+    return render(request, 'women/addpage.html', context=data)
 
 
 def contact(request):
@@ -76,7 +77,7 @@ def login(request):
 def show_category(request, cat_slug):
     category = get_object_or_404(Category, slug=cat_slug)
     # Используем 2 независимых запроса, чтобы не отрабатывалось дважды
-    posts = Women.published.filter(cat_id=category.pk)
+    posts = Women.published.filter(cat_id=category.pk).select_related("cat")
 
     data = {
         'title': f"Рубрика: {category.name}",
@@ -90,7 +91,7 @@ def show_category(request, cat_slug):
 
 def show_tag_postlist(request, tag_slug):
     tag = get_object_or_404(TagPost, slug=tag_slug)
-    posts = tag.tags.filter(is_published=Women.Status.PUBLISHED)
+    posts = tag.tags.filter(is_published=Women.Status.PUBLISHED).select_related('cat')
 
     data = {
         'title': f'{tag.tag}',
