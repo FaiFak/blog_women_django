@@ -1,4 +1,6 @@
 from django.contrib import admin, messages
+from django.utils.safestring import mark_safe
+
 from .models import Women
 from .models import Category
 
@@ -22,20 +24,28 @@ class MarriedFilter(admin.SimpleListFilter):
 
 @admin.register(Women)
 class WomenAdmin(admin.ModelAdmin):
-    fields = ['title', 'slug', 'content', 'cat', 'husband', 'tags']
-    # readonly_fields = ['slug']
+    fields = ['title', 'slug', 'photo', 'post_photo', 'content', 'cat', 'husband', 'tags']
+    readonly_fields = ['post_photo']
     prepopulated_fields = {'slug': ('title',)}
     filter_horizontal = ['tags']
-    list_display = ['title', 'time_created', 'is_published', 'cat', 'brief_info']
+    list_display = ['title', "post_photo", 'time_created', 'is_published', 'cat']
     list_display_links = ('title',)
     ordering = ['title']
     list_editable = ('is_published',)
-    list_per_page = 6
+    list_per_page = 8
     actions = ['set_published', 'set_draft']
     list_filter = [MarriedFilter, 'cat__name', 'is_published']
     search_fields = ['title', 'cat__name']
+    save_on_top = True
 
     # Пользовательские поля
+
+    @admin.display(description='Изображение', ordering='content')
+    def post_photo(self, women: Women):
+        if women.photo:
+            return mark_safe(f'<img src={women.photo.url} width=50>')
+        return 'Без фото'
+
     @admin.display(description='Краткое описание', ordering='content')
     def brief_info(self, women: Women):
         return f"Описание {len(women.content)} символов"
@@ -56,3 +66,4 @@ class WomenAdmin(admin.ModelAdmin):
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'slug']
     list_display_links = ('id', 'name')
+    prepopulated_fields = {'slug': ('name',)}

@@ -35,6 +35,8 @@ class Women(models.Model):
         MinLengthValidator(5, message='Минимум 5 символов'),
         MaxLengthValidator(100, message='Максимум 100 символов')
     ])
+    photo = models.ImageField(upload_to="photos/%Y/%m/%d/", default=None, blank=True,
+                              null=True, verbose_name='Фото')
     content = models.TextField(blank=True, verbose_name='Текст статьи')
     time_created = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     time_updated = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
@@ -101,3 +103,7 @@ class Husband(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class UploadFiles(models.Model):
+    file = models.FileField(upload_to='uploads_model')
